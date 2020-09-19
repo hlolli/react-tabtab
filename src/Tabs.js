@@ -1,11 +1,11 @@
 // @flow
-import * as React from 'react';
+import * as React from "react";
 
 type Props = {
   defaultIndex?: number,
   activeIndex?: number,
   showModalButton?: number | boolean,
-  showArrowButton?: 'auto' | boolean ,
+  showArrowButton?: "auto" | boolean,
   ExtraButton?: React.Node,
   onTabChange?: (event: any) => void,
   onTabSequenceChange?: (event: any) => void,
@@ -14,95 +14,78 @@ type Props = {
     TabList?: () => void,
     Tab?: () => void,
     Panel?: () => void,
-    ActionButton?: () => void
+    ActionButton?: () => void,
   },
-  children: React.Element<*>
+  children: React.Element<*>,
 };
 
 type State = {
-  activeIndex: number
+  activeIndex: number,
 };
 
-export default class Tabs extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    (this: any).handleTabChange = this.handleTabChange.bind(this);
-    (this: any).handleTabSequence = this.handleTabSequence.bind(this);
-    (this: any).handleEdit = this.handleEdit.bind(this);
-    (this: any).state = {
-      activeIndex: this.getActiveIndex(props)
-    };
-  }
-
-  static defaultProps = {
-    showModalButton: 4,
-    showArrowButton: 'auto',
-    onTabChange: () => {},
-    onTabSequenceChange: () => {},
-    customStyle: {
-      TabList: null,
-      Tab: null,
-      Panel: null,
-      ActionButton: null
-    }
-  }
-
-  getActiveIndex(props: Props) {
-    const {defaultIndex, activeIndex} = props;
-    if (activeIndex)
-      return activeIndex;
-    if (defaultIndex)
-      return defaultIndex;
+export default function Tabs(props: Props) {
+  const getActiveIndex = React.useCallback(() => {
+    const { defaultIndex, activeIndex } = props;
+    if (activeIndex) return activeIndex;
+    if (defaultIndex) return defaultIndex;
     return 0;
-  }
+  }, [props]);
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.activeIndex !== this.props.activeIndex) {
-      this.setState({activeIndex: nextProps.activeIndex});
-    }
-  }
+  const [activeIndex, setActiveIndex] = React.useState(getActiveIndex());
 
-  handleTabChange(index: number) {
-    const {activeIndex, onTabChange} = this.props;
-    if (activeIndex !== 0 && !activeIndex) {
-      this.setState({activeIndex: index});
-    }
-    if (onTabChange) {
-      onTabChange(index);      
-    }
-  }
+  const handleTabChange = React.useCallback(
+    (index: number) => {
+      if (props.activeIndex !== 0 && !props.activeIndex) {
+        setActiveIndex(index);
+      }
+      if (props.onTabChange) {
+        props.onTabChange(index);
+      }
+    },
+    [props.activeIndex, props.onTabChange, setActiveIndex]
+  );
 
-  handleTabSequence({oldIndex, newIndex}: {oldIndex: number, newIndex: number}) {
-    const {onTabSequenceChange} = this.props;
-    if (onTabSequenceChange) {
-      onTabSequenceChange({oldIndex, newIndex});
-    }
-  }
+  const handleTabSequence = React.useCallback(
+    ({ oldIndex, newIndex }: { oldIndex: number, newIndex: number }) => {
+      const { onTabSequenceChange } = props;
+      if (onTabSequenceChange) {
+        onTabSequenceChange({ oldIndex, newIndex });
+      }
+    },
+    [props.onTabSequenceChange]
+  );
 
-  handleEdit({type, index}: {type: string, index: number}) {
-    const {onTabEdit} = this.props;
-    if (onTabEdit) {
-      onTabEdit({type, index});
-    }
-  }
+  const handleEdit = React.useCallback(
+    ({ type, index }: { type: string, index: number }) => {
+      const { onTabEdit } = props;
+      if (onTabEdit) {
+        onTabEdit({ type, index });
+      }
+    },
+    [props.onTabEdit]
+  );
 
-  render() {
-    const {children, ...extraProps} = this.props;
-    const {activeIndex} = this.state;
-    const props = {
-      handleTabChange: this.handleTabChange,
-      handleTabSequence: this.handleTabSequence,
-      handleEdit: this.handleEdit,
-      activeIndex,
-      ...extraProps
+  React.useEffect(() => {
+    if (props.activeIndex !== activeIndex) {
+      setActiveIndex(props.activeIndex);
     }
+  }, [props.activeIndex, activeIndex]);
 
-    return (
-      <div>
-        {React.Children.map(children, (child) => {
-          return React.cloneElement(child, props);
-        })}
-      </div>
-    )
-  }
+  const { children, ...extraProps } = props;
+
+  const nextProps = {
+    handleTabChange,
+    handleTabSequence,
+    handleEdit,
+    activeIndex,
+    ...extraProps,
+  };
+
+  return (
+    <div>
+      {React.Children.map(children, (child) => {
+        return React.cloneElement(child, nextProps);
+      })}
+    </div>
+  );
 }

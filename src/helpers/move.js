@@ -1,6 +1,5 @@
-// arrayMove method is import from 'react-sortable-hoc' to unify api interface
-import {arrayMove} from 'react-sortable-hoc';
+import { arrayMove } from "array-move";
 
 export default {
-  simpleSwitch: arrayMove
+  simpleSwitch: arrayMove,
 };
