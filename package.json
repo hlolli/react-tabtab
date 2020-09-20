@@ -1,8 +1,8 @@
 {
   "name": "@hlolli/react-tabtab",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A mobile support, draggable, editable and api based Tab for ReactJS",
-  "main": "dist/react-tabtab.min.js",
+  "main": "lib/",
   "scripts": {
     "start": "node devServer.js",
     "build": "npm run build:lib && npm run build:dist",
@@ -51,9 +51,14 @@
     "react-test-renderer": "^16.13.1"
   },
   "devDependencies": {
+    "@babel/cli": "^7.11.6",
     "@babel/plugin-proposal-object-rest-spread": "^7.11.0",
+    "@babel/polyfill": "^7.11.5",
     "@babel/preset-env": "^7.11.5",
     "@babel/preset-react": "^7.10.4",
+    "babel-loader": "^8.1.0",
+    "babel-plugin-add-module-exports": "^1.0.4",
+    "babel-plugin-flow-react-proptypes": "^26.0.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-flow-strip-types": "^6.22.0",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
@@ -76,7 +81,6 @@
     "flow-watch": "^2.0.0",
     "git-directory-deploy": "^1.5.1",
     "html-webpack-plugin": "^4.4.1",
-    "husky": "^4.3.0",
     "jest": "^26.4.2",
     "jest-styled-components": "^7.0.3",
     "noop3": "^1000.0.0",
@@ -98,6 +102,7 @@
     "rollup-plugin-visualizer": "^4.1.1",
     "webpack": "^4.44.2",
     "webpack-bundle-analyzer": "^3.9.0",
+    "webpack-cli": "^3.3.12",
     "webpack-dev-middleware": "^3.7.2",
     "webpack-hot-middleware": "^2.25.0"
   },

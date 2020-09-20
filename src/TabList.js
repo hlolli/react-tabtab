@@ -1,13 +1,14 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import invariant from 'invariant';
-import {LeftIcon, RightIcon, BulletIcon} from './IconSvg';
-import {isNumber} from './utils/isType';
-import TabModal from './TabModal';
+import * as React from "react";
+import styled from "styled-components";
+import invariant from "invariant";
+import { LeftIcon, RightIcon, BulletIcon } from "./IconSvg";
+import { isNumber } from "./utils/isType";
+import TabModal from "./TabModal";
 
 const buttonWidth = 35;
-const getPadding = ({showModalButton, showArrowButton}) => {
+
+const getPadding = ({ showModalButton, showArrowButton }) => {
   let paddingLeft = 0;
   let paddingRight = 0;
   if (showModalButton) {
@@ -27,7 +28,11 @@ const getPadding = ({showModalButton, showArrowButton}) => {
     paddingRight += 3;
   }
   return `0 ${paddingRight}px 0 ${paddingLeft}px`;
-}
+};
+
+const unifyScrollMax = (width: number) => {
+  return parseFloat((width / 3) * 2);
+};
 
 const TabListStyle = styled.div`
   background-color: white;
@@ -36,7 +41,7 @@ const TabListStyle = styled.div`
   white-space: nowrap;
   overflow: hidden;
   width: auto;
-  padding: ${props => getPadding(props)};
+  padding: ${(props) => getPadding(props)};
 `;
 
 const ListInner = styled.div`
@@ -49,7 +54,7 @@ const ListScroll = styled.ul`
   margin: 0;
   list-style: none;
   display: inline-block;
-  transition: transform .3s cubic-bezier(.42, 0, .58, 1);
+  transition: transform 0.3s cubic-bezier(0.42, 0, 0.58, 1);
 `;
 
 const ActionButtonStyle = styled.div`
@@ -65,20 +70,23 @@ const ActionButtonStyle = styled.div`
   }
 `;
 
-const makeScrollButton = ActionButton => styled(ActionButton)`
+const makeScrollButton = (ActionButton) => styled(ActionButton)`
   display: inline-block;
   filter: none;
   position: absolute;
-  ${props => props.left ?
-    props.showModalButton ? `left: ${buttonWidth + 2}px`: `left: 0`
-  : 'right: 0'
-  };
+  ${(props) =>
+    props.left
+      ? props.showModalButton
+        ? `left: ${buttonWidth + 2}px`
+        : `left: 0`
+      : "right: 0"};
   &:hover {
     cursor: pointer;
   }
+  ${(props) => (props.customStyle ? props.customStyle(props) : "")}
 `;
 
-const makeFoldButton = ActionButton => styled(ActionButton)`
+const makeFoldButton = (ActionButton) => styled(ActionButton)`
   display: inline-block;
   filter: none;
   position: absolute;
@@ -86,283 +94,282 @@ const makeFoldButton = ActionButton => styled(ActionButton)`
   &:hover {
     cursor: pointer;
   }
+  ${(props) => (props.customStyle ? props.customStyle(props) : "")}
 `;
 
 type Props = {
   customStyle: {
     TabList: () => void,
     Tab: () => void,
-    ActionButton: () => void
+    ActionButton: () => void,
   },
   activeIndex: number,
-  showArrowButton: 'auto' | boolean,
+  showArrowButton: "auto" | boolean,
   showModalButton: number | boolean,
   handleTabChange: (event: any) => void,
   handleTabSequence: (event: any) => void,
   handleEdit: (event: any) => void,
   ExtraButton: React.Element<*>,
-  children: React.ChildrenArray<*>
+  children: React.ChildrenArray<*>,
 };
 
 type State = {
   modalIsOpen: boolean,
   showArrowButton: boolean,
-  showModalButton: boolean | number
+  showModalButton: boolean | number,
 };
 
-export default class TabListComponent extends React.Component<Props, State> {
+const ActionButton = ActionButtonStyle;
+const ScrollButton = makeScrollButton(ActionButton);
+const FoldButton = makeFoldButton(ActionButton);
 
-  listContainer: React.ElementRef<any>;
-  rightArrowNode: React.ElementRef<any>;
-  leftArrowNode: React.ElementRef<any>;
-  listScroll: React.ElementRef<any>;
-  foldNode: React.ElementRef<any>;
-  tabRefs: Array<HTMLElement>;
-  scrollPosition: number;
+export default function TabListComponent(props: Props) {
+  const listContainer = React.useRef();
+  const rightArrowNode = React.useRef();
+  const leftArrowNode = React.useRef();
+  const listScroll = React.useRef();
+  const foldNode = React.useRef();
+  const [tabRefs, setTabRefs] = React.useState([]);
+  const [scrollPosition, setScrollPosition] = React.useState(0);
+  const [isMounted, setIsMounted] = React.useState(false);
+  const [modalIsOpen, setModalIsOpen] = React.useState(false);
+  const [showArrowButton, setShowArrowButton] = React.useState(false);
+  const [showModalButton, setShowModalButton] = React.useState(false);
 
-  constructor(props: Props) {
-    super(props);
-    (this: any).handleScroll = this.handleScroll.bind(this);
-    (this: any).toggleModal = this.toggleModal.bind(this);
-    (this: any).renderTabs = this.renderTabs.bind(this);
-    (this: any).renderArrowButton = this.renderArrowButton.bind(this);
-    (this: any).isShowModalButton = this.isShowModalButton.bind(this);
-    (this: any).isShowArrowButton = this.isShowArrowButton.bind(this);
-    (this: any).scrollPosition = 0;
-    (this: any).tabRefs = [];
-    (this: any).state = {
-      modalIsOpen: false,
-      showArrowButton: false,
-      showModalButton: false
-    }
-  }
+  const {
+    customStyle,
+    activeIndex,
+    handleEdit,
+    handleTabChange,
+    handleTabSequence,
+    ExtraButton,
+    showArrowButton: propsShowArrowButton,
+    showModalButton: propsShowModalButton,
+  } = props;
 
-  componentDidMount() {
-    this.isShowArrowButton();
-    this.isShowModalButton();
-    if(this.props.activeIndex > 0)
-      this.scrollToIndex(this.props.activeIndex, 'left')
-  }
+  const numChildren = props.children.length;
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
-    if (prevProps.children.length !== this.props.children.length) {
-      this.isShowArrowButton();
-      this.isShowModalButton();
-    }
+  const isShowModalButton = React.useCallback(() => {
+    setShowModalButton(
+      isNumber(propsShowModalButton)
+        ? numChildren >= propsShowModalButton
+        : propsShowModalButton
+    );
+  }, [numChildren, propsShowModalButton]);
 
-    if (prevProps.activeIndex !== this.props.activeIndex) {
-      //if we scroll to the last tab, alignment is set to the right side of the tab
-      const rectSide = this.props.activeIndex === this.props.children.length - 1 ? 'right' : 'left';
-      this.scrollToIndex(this.props.activeIndex, rectSide);
-    }
-    // if prev state show arrow button, and current state doesn't show
-    // need to reset the scroll position, or some tabs will be hided by container.
-    if (prevState.showArrowButton && !this.state.showArrowButton) {
-      this.scrollToZero();
-    }
+  React.useEffect(() => {
+    isShowModalButton();
+  }, [propsShowModalButton]);
 
-    if (prevProps.showModalButton !== this.props.showModalButton) {
-      this.isShowModalButton();
-    }
-
-    if (prevProps.showArrowButton !== this.props.showArrowButton) {
-      this.isShowArrowButton();
-    }
-  }
-
-  getTabNode(tab: any): React.ElementRef<any> {
-    if (tab.__INTERNAL_NODE) { // normal tab
-      return tab.__INTERNAL_NODE;
-    } else if (tab.__DRAG_TAB_INTERNAL_NODE) { // drag tab
-      return tab.__DRAG_TAB_INTERNAL_NODE.node;
-    }
-  }
-
-  unifyScrollMax(width: number) {
-    return parseFloat((width / 3) * 2);
-  }
-
-  handleScroll(direction: 'right' | 'left') {
-    let leftMove = 0;
-    const containerOffset = this.listContainer.getBoundingClientRect();
-    const containerWidth = this.listContainer.offsetWidth;
-    const tabFirstOffset = this.getTabNode(this.tabRefs[0]).getBoundingClientRect();
-    const tabLastOffset = this.getTabNode(this.tabRefs[this.tabRefs.length - 1]).getBoundingClientRect();
-
-    if (direction === 'right') {
-      leftMove = tabLastOffset.right - containerOffset.right;
-      if (leftMove > containerWidth) {
-        leftMove = this.unifyScrollMax(containerWidth);
-      }
-    } else if (direction === 'left') {
-      leftMove = tabFirstOffset.left - containerOffset.left;
-      if (-leftMove > containerWidth) {
-        leftMove = - this.unifyScrollMax(containerWidth);
-      }
-    }
-    this.scrollPosition += leftMove;
-    if (this.scrollPosition < 0) {
-      this.scrollPosition = 0;
-    }
-
-    this.listScroll.style.transform = `translate3d(-${this.scrollPosition}px, 0, 0)`;
-  }
-
-  // $FlowFixMe
-  scrollToIndex(index: number, rectSide: 'left' | 'right') {
-    const tabOffset = this.getTabNode(this.tabRefs[index]).getBoundingClientRect();
-    const containerOffset = this.listContainer.getBoundingClientRect();
-    // Cancel scrolling if the tab is visible
-    if(tabOffset.right < containerOffset.right &&
-       tabOffset.left > containerOffset.left) return;
-    const leftMove = tabOffset[rectSide] - containerOffset[rectSide];
-    this.scrollPosition += leftMove;
-    if (this.scrollPosition < 0 ) {
-      this.scrollPosition = 0;
-    }
-    this.listScroll.style.transform = `translate3d(-${this.scrollPosition}px, 0, 0)`;
-  }
-
-  scrollToZero() {
-    this.listScroll.style.transform = `translate3d(0, 0, 0)`;
-  }
-
-  toggleModal(open: boolean) {
-    this.setState({modalIsOpen: open}, () => {
-      if (!open) {
-        // $FlowFixMe
-        this.scrollToIndex(this.props.activeIndex, 'right');
-      }
-    });
-  }
-
-  isShowModalButton() {
-    let {showModalButton} = this.props;
-    if (isNumber(showModalButton)) {
-      // $FlowFixMe, weired. currently set showModalButton as number | bool, but don't know why flow only can recognize it as bool
-      showModalButton = this.props.children.length >= showModalButton;
-    }
-    this.setState({showModalButton});
-  }
-
-  isShowArrowButton() {
-    let {showArrowButton} = this.props;
-    if (showArrowButton === 'auto') {
+  const isShowArrowButton = React.useCallback(() => {
+    let newShowArrowButton = propsShowArrowButton;
+    if (propsShowArrowButton === "auto") {
       let tabWidth = 0;
-      const containerWidth = this.listContainer.offsetWidth;
-      showArrowButton = false;
-      for (let index = 0; index < this.tabRefs.length; index++) {
-        const tab = this.getTabNode(this.tabRefs[index]);
-        tabWidth += tab.offsetWidth;
-        if (tabWidth >= containerWidth) {
-          showArrowButton = true;
-          break;
+      const containerWidth = listContainer.current.offsetWidth;
+      newShowArrowButton = false;
+      for (let index = 0; index < tabRefs.length; index++) {
+        const tab = tabRefs[index];
+        if (tab && tab.current) {
+          tabWidth += tab.current.offsetWidth;
+          if (tabWidth >= containerWidth) {
+            newShowArrowButton = true;
+            break;
+          }
         }
       }
     }
     // $FlowFixMe: flow will show 'auto' is not bool, but with this logic, showArrowButton will never be 'auto'
-    this.setState({showArrowButton});
-  }
+    setShowArrowButton(newShowArrowButton);
+  }, [propsShowArrowButton, setShowArrowButton, listContainer, tabRefs]);
 
-  renderTabs(options?: any = {}, isModal?: boolean) {
-    const {children, activeIndex, handleTabChange, handleEdit, customStyle} = this.props;
-    const props = {
-      handleTabChange,
-      handleEdit,
-      //$FlowFixMe
-      CustomTabStyle: customStyle.Tab
-    };
-    if (!isModal) {
-      this.tabRefs = [];
+  React.useEffect(() => {
+    isShowArrowButton();
+  }, [propsShowArrowButton]);
+
+  React.useEffect(() => {
+    // add or remove refs
+    setTabRefs((elRefs) =>
+      Array(numChildren)
+        .fill()
+        .map((_, i) => elRefs[i] || React.createRef())
+    );
+  }, [numChildren]);
+
+  const scrollToIndex = React.useCallback(
+    (index: number, rectSide: "left" | "right") => {
+      if (tabRefs.length - 1 < index) {
+        // this may be annoying on initializaiton
+        return;
+      }
+      const tabOffset = tabRefs[index].getBoundingClientRect();
+      const containerOffset = listContainer.getBoundingClientRect();
+      // Cancel scrolling if the tab is visible
+      if (
+        tabOffset.right < containerOffset.right &&
+        tabOffset.left > containerOffset.left
+      ) {
+        return;
+      }
+
+      const leftMove = tabOffset[rectSide] - containerOffset[rectSide];
+      let nextScrollPosition = scrollPosition + leftMove;
+      if (nextScrollPosition < 0) {
+        nextScrollPosition = 0;
+      }
+      if (listScroll.current) {
+        listScroll.current.style.transform = `translate3d(-${scrollPosition}px, 0, 0)`;
+      }
+
+      setScrollPosition(nextScrollPosition);
+    },
+    [listContainer, scrollPosition, setScrollPosition]
+  );
+
+  const toggleModal = React.useCallback(
+    (open: boolean) => {
+      if (!open) {
+        scrollToIndex(activeIndex, "right");
+      }
+      setModalIsOpen(open);
+    },
+    [scrollToIndex, setModalIsOpen, activeIndex]
+  );
+
+  const handleScroll = React.useCallback(
+    (direction: "right" | "left") => {
+      let leftMove = 0;
+      if (!listContainer.current || tabRefs.length < 1 || !listScroll.current) {
+        return;
+      }
+      const containerOffset = listContainer.current.getBoundingClientRect();
+      const containerWidth = listContainer.current.offsetWidth;
+      const tabFirstOffset = tabRefs[0].getBoundingClientRect();
+      const tabLastOffset = tabRefs[tabRefs.length - 1].getBoundingClientRect();
+
+      if (direction === "right") {
+        leftMove = tabLastOffset.right - containerOffset.right;
+        if (leftMove > containerWidth) {
+          leftMove = unifyScrollMax(containerWidth);
+        }
+      } else if (direction === "left") {
+        leftMove = tabFirstOffset.left - containerOffset.left;
+        if (-leftMove > containerWidth) {
+          leftMove = -unifyScrollMax(containerWidth);
+        }
+      }
+      let newScrollPosition = scrollPosition + leftMove;
+      // this.scrollPosition += leftMove;
+      if (newScrollPosition < 0) {
+        newScrollPosition = 0;
+      }
+
+      listScroll.current.style.transform = `translate3d(-${newScrollPosition}px, 0, 0)`;
+      setScrollPosition(newScrollPosition);
+    },
+    [listScroll, scrollPosition, setScrollPosition, listContainer, tabRefs]
+  );
+
+  React.useEffect(() => {
+    if (!isMounted) {
+      if (activeIndex > 0) {
+        scrollToIndex(activeIndex, "left");
+      }
+      setIsMounted(true);
+      isShowArrowButton();
+      isShowModalButton();
     }
-    return React.Children.map(children, (child, index) => (
-      React.cloneElement(child, {
-        key: index,
-        active: index === activeIndex,
-        index,
-        tabIndex: index,
-        ref: node => {
-          if (!isModal && node) {
-            this.tabRefs.push(node)
-          }
-        },
-        ...props,
-        ...options
-      })
-    ));
-  }
+  }, [activeIndex, isMounted, setIsMounted]);
 
-  renderArrowButton(ScrollButton: React.ComponentType<*>) {
-    const {showArrowButton} = this.state;
-    if (showArrowButton) {
-      return (
-        <div>
-          <ScrollButton left
-            onClick={() => { this.handleScroll('left') }}
-            ref={node => this.leftArrowNode = node}
-            showModalButton={this.state.showModalButton}>
-            <LeftIcon />
-          </ScrollButton>
-          <ScrollButton onClick={() => { this.handleScroll('right') }}
-            ref={node => this.rightArrowNode = node}>
-            <RightIcon />
-          </ScrollButton>
-        </div>
-      )
-    }
-    return null;
-  }
+  invariant(
+    props.children,
+    "React-tabtab Error: You MUST pass at least one tab"
+  );
 
-  render() {
-    const {
-      customStyle,
-      activeIndex,
-      handleTabChange,
-      handleTabSequence,
-      ExtraButton
-    } = this.props;
-    const {modalIsOpen} = this.state;
-    const TabList = customStyle.TabList || TabListStyle;
-    const ActionButton = customStyle.ActionButton || ActionButtonStyle;
-    const ScrollButton = makeScrollButton(ActionButton);
-    const FoldButton = makeFoldButton(ActionButton);
-    invariant(this.props.children, 'React-tabtab Error: You MUST pass at least one tab')
-    return (
-      <div>
-        {ExtraButton ? ExtraButton : null}
-        <TabList hasExtraButton={!!ExtraButton}
-                 showModalButton={this.state.showModalButton}
-                 showArrowButton={this.state.showArrowButton}>
-          {this.state.showModalButton ?
-            <FoldButton ref={node => this.foldNode = node}
-                        onClick={this.toggleModal.bind(this, true)}
-                        showArrowButton={this.state.showArrowButton}>
-              <BulletIcon/>
-            </FoldButton>
-          : null}
-          {this.renderArrowButton(ScrollButton)}
-          <ListInner ref={node => this.listContainer = node}>
-            <ListScroll ref={node => this.listScroll = node} role="tablist">
-              {this.renderTabs()}
-            </ListScroll>
-          </ListInner>
-        </TabList>
-        {modalIsOpen ?
-          <TabModal closeModal={this.toggleModal.bind(this, false)}
-                    handleTabSequence={handleTabSequence}
-                    handleTabChange={handleTabChange}
-                    activeIndex={activeIndex}>
-            {this.renderTabs({vertical: true}, true)}
-          </TabModal>
-        : null}
-      </div>
-    )
-  }
+  return (
+    <div>
+      {ExtraButton ? ExtraButton : null}
+      <TabListStyle
+        hasExtraButton={!!ExtraButton}
+        showModalButton={showModalButton}
+        showArrowButton={showArrowButton}
+      >
+        {showModalButton ? (
+          <FoldButton
+            ref={foldNode}
+            customStyle={customStyle.ActionButton || false}
+            onClick={() => toggleModal(true)}
+            showArrowButton={showArrowButton}
+          >
+            <BulletIcon />
+          </FoldButton>
+        ) : null}
+        {showArrowButton && (
+          <div>
+            <ScrollButton
+              left
+              onClick={() => {
+                handleScroll("left");
+              }}
+              ref={leftArrowNode}
+              showModalButton={showModalButton}
+              customStyle={customStyle.ActionButton || false}
+            >
+              <LeftIcon />
+            </ScrollButton>
+            <ScrollButton
+              onClick={() => {
+                handleScroll("right");
+              }}
+              ref={rightArrowNode}
+              customStyle={customStyle.ActionButton || false}
+            >
+              <RightIcon />
+            </ScrollButton>
+          </div>
+        )}
+        <ListInner ref={listContainer}>
+          <ListScroll ref={listScroll} role="tablist">
+            {React.Children.map(props.children, (child, index) =>
+              React.cloneElement(child, {
+                key: index,
+                active: index === activeIndex,
+                index,
+                tabIndex: index,
+                ref: tabRefs[index],
+                CustomTabStyle: customStyle.Tab,
+                handleTabChange,
+                handleEdit,
+              })
+            )}
+          </ListScroll>
+        </ListInner>
+      </TabListStyle>
+      {modalIsOpen ? (
+        <TabModal
+          closeModal={() => toggleModal(false)}
+          handleTabSequence={handleTabSequence}
+          handleTabChange={handleTabChange}
+          activeIndex={activeIndex}
+        >
+          {React.Children.map(props.children, (child, index) =>
+            React.cloneElement(child, {
+              key: index,
+              active: index === activeIndex,
+              index,
+              tabIndex: index,
+              ref: tabRefs[index],
+              vertical: true,
+              CustomTabStyle: customStyle.Tab,
+              handleTabChange,
+              handleEdit,
+            })
+          )}
+        </TabModal>
+      ) : null}
+    </div>
+  );
 }
 
-TabListComponent.displayName = 'TabList';
+TabListComponent.displayName = "TabList";
 
-export {
-  TabListStyle,
-  ActionButtonStyle
-}
+export { TabListStyle, ActionButtonStyle };

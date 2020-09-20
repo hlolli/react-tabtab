@@ -1,58 +1,55 @@
-const path = require('path');
-const webpack = require('webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require("path");
+const webpack = require("webpack");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   entry: {
-    root: [
-      'babel-polyfill',
-      './docs/root'
-    ]
+    root: ["@babel/polyfill", "./docs/root"],
   },
   output: {
-    path: path.join(__dirname, '_gh-pages'),
-    filename: '[name].[chunkhash].js'
+    path: path.join(__dirname, "_gh-pages"),
+    filename: "[name].[chunkhash].js",
   },
   resolve: {
-    extensions: ['.js'],
+    extensions: [".js"],
     alias: {
-      'react-tabtab/lib': path.resolve(__dirname, 'src/')
-    }
+      "react-tabtab/lib": path.resolve(__dirname, "src/"),
+    },
   },
   externals: {
-    'react': "React",
-    'react-dom': "ReactDOM"
+    react: "React",
+    "react-dom": "ReactDOM",
   },
   plugins: [
     new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: JSON.stringify("production")
-      }
+      "process.env": {
+        NODE_ENV: JSON.stringify("production"),
+      },
     }),
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'common',
-      filename: 'common.js',
-      minChunk: 2,
-    }),
+    // new webpack.optimize.CommonsChunkPlugin({
+    //   name: "common",
+    //   filename: "common.js",
+    //   minChunk: 2,
+    // }),
     new HtmlWebpackPlugin({
       inject: false,
       production: true,
-      template: 'docs/index.ejs',
-      title: 'React tabtab - Make your react tab dance',
+      template: "docs/index.ejs",
+      title: "React tabtab - Make your react tab dance",
       googleAnalytics: {
-        trackingId: 'UA-54035195-6',
-        pageViewOnLoad: true
-      }
+        trackingId: "UA-54035195-6",
+        pageViewOnLoad: true,
+      },
     }),
-    new webpack.optimize.UglifyJsPlugin()
+    // new webpack.optimize.UglifyJsPlugin(),
   ],
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
-        loader: 'babel-loader',
-        exclude: /node_modules/
-      }
-    ]
-  }
-}
+        loader: "babel-loader",
+        exclude: /node_modules/,
+      },
+    ],
+  },
+};
