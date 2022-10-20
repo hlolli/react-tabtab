@@ -1,16 +1,16 @@
 // @flow
-import Tabs from './Tabs';
-import TabList, {TabListStyle, ActionButtonStyle} from './TabList';
-import Tab, {TabStyle} from './Tab';
-import DragTabList from './DragTabList';
-import DragTab from './DragTab';
-import PanelList from './PanelList';
-import Panel, {PanelStyle} from './Panel';
-import AsyncPanel from './AsyncPanel';
-import ExtraButton from './ExtraButton';
+import Tabs from "./Tabs.js";
+import TabList, { TabListStyle, ActionButtonStyle } from "./TabList.js";
+import Tab, { TabStyle } from "./Tab.js";
+import DragTabList from "./DragTabList.js";
+import DragTab from "./DragTab.js";
+import PanelList from "./PanelList.js";
+import Panel, { PanelStyle } from "./Panel.js";
+import AsyncPanel from "./AsyncPanel.js";
+import ExtraButton from "./ExtraButton.js";
 
-const styled = {TabListStyle, ActionButtonStyle, TabStyle, PanelStyle};
-const defaultOutput = {
+const styled = { TabListStyle, ActionButtonStyle, TabStyle, PanelStyle };
+export {
   Tabs,
   TabList,
   Tab,
@@ -20,7 +20,5 @@ const defaultOutput = {
   Panel,
   AsyncPanel,
   ExtraButton,
-  styled
-}
-
-export default defaultOutput;
+  styled,
+};

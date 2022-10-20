@@ -1,26 +1,26 @@
 // @flow
-import * as React from "react";
+import React from "react";
 
 type Props = {
-  defaultIndex?: number,
-  activeIndex?: number,
-  showModalButton?: number | boolean,
-  showArrowButton?: "auto" | boolean,
-  ExtraButton?: React.Node,
-  onTabChange?: (event: any) => void,
-  onTabSequenceChange?: (event: any) => void,
-  onTabEdit?: (event: any) => void,
+  defaultIndex?: number;
+  activeIndex?: number;
+  showModalButton?: number | boolean;
+  showArrowButton?: "auto" | boolean;
+  ExtraButton?: React.Node;
+  onTabChange?: (event: any) => void;
+  onTabSequenceChange?: (event: any) => void;
+  onTabEdit?: (event: any) => void;
   customStyle?: {
-    TabList?: () => void,
-    Tab?: () => void,
-    Panel?: () => void,
-    ActionButton?: () => void,
-  },
-  children: React.Element<*>,
+    TabList?: () => void;
+    Tab?: () => void;
+    Panel?: () => void;
+    ActionButton?: () => void;
+  };
+  children: React.Element<*>;
 };
 
 type State = {
-  activeIndex: number,
+  activeIndex: number;
 };
 
 export default function Tabs(props: Props) {
@@ -46,7 +46,7 @@ export default function Tabs(props: Props) {
   );
 
   const handleTabSequence = React.useCallback(
-    ({ oldIndex, newIndex }: { oldIndex: number, newIndex: number }) => {
+    ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
       const { onTabSequenceChange } = props;
       if (onTabSequenceChange) {
         onTabSequenceChange({ oldIndex, newIndex });
@@ -56,7 +56,7 @@ export default function Tabs(props: Props) {
   );
 
   const handleEdit = React.useCallback(
-    ({ type, index }: { type: string, index: number }) => {
+    ({ type, index }: { type: string; index: number }) => {
       const { onTabEdit } = props;
       if (onTabEdit) {
         onTabEdit({ type, index });

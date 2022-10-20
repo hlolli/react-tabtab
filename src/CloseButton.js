@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import {CloseIcon} from './IconSvg';
-import styled from 'styled-components';
+import * as React from "react";
+import { CloseIcon } from "./IconSvg.js";
+import styled from "styled-components";
 
 const CloseWrapper = styled.button`
   display: inline-block;
@@ -12,6 +12,7 @@ const CloseWrapper = styled.button`
   border: 0;
   padding: 2px;
   outline: 0;
+  z-index: 10;
   &:hover {
     color: black;
     background-color: #eee;
@@ -24,14 +25,14 @@ const CloseWrapper = styled.button`
 `;
 
 type Props = {
-  handleDelete: (event: any) => void
+  handleDelete: (event: any) => void;
 };
 
 export default class CloseButton extends React.PureComponent<Props> {
   render() {
     return (
       <CloseWrapper onClick={this.props.handleDelete}>
-        <CloseIcon/>        
+        <CloseIcon />
       </CloseWrapper>
     );
   }

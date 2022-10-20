@@ -1,4 +1,4 @@
-function deleteHelper (sequence, deleteIndex) {
+function deleteHelper(sequence, deleteIndex) {
   return sequence.filter((_, i) => i !== deleteIndex);
 }
 

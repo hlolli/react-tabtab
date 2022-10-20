@@ -1,34 +1,28 @@
 // @flow
-import * as React from 'react';
-import {SortableElement} from 'react-sortable-hoc';
-import Tab from './Tab';
+import React from "react";
+import { SortableElement } from "react-sortable-hoc";
+import Tab from "./Tab.js";
 
-const DragTabElement = SortableElement(({children, ...props}) => {
-  return (
-    <Tab index={props.tabIndex} {...props}>
-      {children}
-    </Tab>
-  )
-});
-
-type Props = {
-  children: React.Node
-};
-
-class DragTab extends React.PureComponent<Props> {
-
-  __DRAG_TAB_INTERNAL_NODE: React.ElementRef<any>;
-
-  render() {
-    const {children, ...props} = this.props;
+const DragTabElement = SortableElement(
+  React.forwardRef(({ children, ...props }, ref) => {
     return (
-      <DragTabElement ref={node => this.__DRAG_TAB_INTERNAL_NODE = node} {...props}>
+      <Tab index={props.tabIndex} {...props} ref={ref}>
         {children}
-      </DragTabElement>
-    )
-  }
+      </Tab>
+    );
+  }),
+  { withRef: true }
+);
+
+function DragTab({ children, closeElement, ...props }) {
+  const dragTabRef = React.useRef();
+  return (
+    <DragTabElement ref={dragTabRef} closeElement={closeElement} {...props}>
+      {children}
+    </DragTabElement>
+  );
 }
 
-DragTab.displayName = 'DragTab';
+DragTab.displayName = "DragTab";
 
 export default DragTab;

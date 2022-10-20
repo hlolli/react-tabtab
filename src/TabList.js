@@ -1,10 +1,10 @@
 // @flow
-import * as React from "react";
+import React from "react";
 import styled from "styled-components";
 import invariant from "invariant";
-import { LeftIcon, RightIcon, BulletIcon } from "./IconSvg";
-import { isNumber } from "./utils/isType";
-import TabModal from "./TabModal";
+import { LeftIcon, RightIcon, BulletIcon } from "./IconSvg.js";
+import { isNumber } from "./utils/isType.js";
+import TabModal from "./TabModal.js";
 
 const buttonWidth = 35;
 
@@ -99,24 +99,24 @@ const makeFoldButton = (ActionButton) => styled(ActionButton)`
 
 type Props = {
   customStyle: {
-    TabList: () => void,
-    Tab: () => void,
-    ActionButton: () => void,
-  },
-  activeIndex: number,
-  showArrowButton: "auto" | boolean,
-  showModalButton: number | boolean,
-  handleTabChange: (event: any) => void,
-  handleTabSequence: (event: any) => void,
-  handleEdit: (event: any) => void,
-  ExtraButton: React.Element<*>,
-  children: React.ChildrenArray<*>,
+    TabList: () => void;
+    Tab: () => void;
+    ActionButton: () => void;
+  };
+  activeIndex: number;
+  showArrowButton: "auto" | boolean;
+  showModalButton: number | boolean;
+  handleTabChange: (event: any) => void;
+  handleTabSequence: (event: any) => void;
+  handleEdit: (event: any) => void;
+  ExtraButton: React.Element<*>;
+  children: React.ChildrenArray<*>;
 };
 
 type State = {
-  modalIsOpen: boolean,
-  showArrowButton: boolean,
-  showModalButton: boolean | number,
+  modalIsOpen: boolean;
+  showArrowButton: boolean;
+  showModalButton: boolean | number;
 };
 
 const ActionButton = ActionButtonStyle;
@@ -286,9 +286,10 @@ export default function TabListComponent(props: Props) {
   );
 
   return (
-    <div>
+    <>
       {ExtraButton ? ExtraButton : null}
       <TabListStyle
+        className="tablist"
         hasExtraButton={!!ExtraButton}
         showModalButton={showModalButton}
         showArrowButton={showArrowButton}
@@ -366,7 +367,7 @@ export default function TabListComponent(props: Props) {
           )}
         </TabModal>
       ) : null}
-    </div>
+    </>
   );
 }
 

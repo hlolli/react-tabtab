@@ -1,7 +1,7 @@
 // @flow
-import * as React from "react";
+import React from "react";
 import styled from "styled-components";
-import CloseButton from "./CloseButton";
+import CloseButton from "./CloseButton.js";
 
 const TabStyle = styled.li`
   display: ${(props) => (props.vertical ? "block" : "inline-block")};
@@ -23,6 +23,7 @@ const TabStyle = styled.li`
     cursor: pointer;
     color: black;
   }
+  z-index: -1;
 `;
 
 const TabText = styled.span`
@@ -30,34 +31,40 @@ const TabText = styled.span`
 `;
 
 type Props = {
-  CustomTabStyle: () => void,
-  handleTabChange: (event: any) => void,
-  handleEdit: (event: any) => void,
-  index: number,
-  active: boolean,
-  closable: boolean,
-  vertical: boolean,
-  children: React.Element<any>,
+  CustomTabStyle: () => void;
+  handleTabChange: (event: any) => void;
+  handleEdit: (event: any) => void;
+  index: number;
+  active: boolean;
+  closable: boolean;
+  vertical: boolean;
+  children: React.Element<any>;
 };
 
-export default function Tab(props: Props) {
+export const Tab = React.forwardRef((props: Props, ref) => {
   const { CustomTabStyle, active, closable, vertical, index } = props;
   const TabComponent = CustomTabStyle || TabStyle;
-  const clickTab = React.useCallback(() => {
-    const { handleTabChange, index } = props;
-    handleTabChange(index);
-  }, [props.handleTabChange, props.index]);
-  const clickDelete = React.useCallback(
+  const clickTab = React.useCallback(
     (event) => {
-      event.stopPropagation(); // prevent trigger clickTab event.
-      const { handleEdit, index } = props;
-      handleEdit({ type: "delete", index });
+      const { handleTabChange, index } = props;
+      handleTabChange(index);
     },
-    [props.handleEdit, props.index]
+    [props.handleTabChange, props.index]
   );
+
+  // const clickDelete = React.useCallback(
+  //   (event) => {
+  //     event.preventDefault();
+  //     const { handleEdit, index } = props;
+  //     handleEdit({ type: "delete", index });
+  //     event.stopPropagation(); // prevent trigger clickTab event.
+  //   },
+  //   [props.handleEdit, props.index]
+  // );
+
   return (
     <TabComponent
-      onClick={clickTab}
+      className="tab"
       active={active}
       vertical={vertical}
       closable={closable}
@@ -66,12 +73,16 @@ export default function Tab(props: Props) {
       aria-controls={`react-tabtab-panel-${index}`}
       aria-selected={active}
     >
-      <TabText>{props.children}</TabText>
-      {closable ? <CloseButton handleDelete={clickDelete} /> : null}
+      <TabText onClick={clickTab} ref={ref}>
+        {props.children}
+      </TabText>
+      {props.closeElement && props.closeElement}
     </TabComponent>
   );
-}
+});
 
 Tab.displayName = "Tab";
 
 export { TabStyle };
+
+export default Tab;

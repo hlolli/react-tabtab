@@ -1,7 +1,17 @@
 {
-  "presets": ["@babel/preset-env", "@babel/preset-react"],
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "modules": false,
+        "targets": {
+          "esmodules": true
+        }
+      }
+    ],
+    "@babel/preset-react"
+  ],
   "plugins": [
-    "add-module-exports",
     "transform-flow-strip-types",
     "transform-class-properties",
     "@babel/plugin-proposal-object-rest-spread"
