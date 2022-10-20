@@ -30,6 +30,6 @@ export default class PanelList extends React.PureComponent<Props> {
         ...props,
       })
     );
-    return <div>{result}</div>;
+    return <div style={this.props.style || {}}>{result}</div>;
   }
 }

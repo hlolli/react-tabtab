@@ -3,10 +3,11 @@ import React from "react";
 import styled from "styled-components";
 
 const PanelStyle = styled.div`
-  background-color: white;
   text-align: left;
   padding: 20px 15px;
   ${(props) => (!props.active ? `display: none;` : null)}
+  height: 100%;
+  width: 100%;
 `;
 
 type Props = {
