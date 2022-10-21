@@ -1,6 +1,6 @@
 {
   "name": "@hlolli/react-tabtab",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "A mobile support, draggable, editable and api based Tab for ReactJS",
   "main": "lib/",
   "type": "module",

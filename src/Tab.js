@@ -23,7 +23,6 @@ const TabStyle = styled.li`
     cursor: pointer;
     color: black;
   }
-  z-index: -1;
 `;
 
 const TabText = styled.span`
@@ -72,10 +71,9 @@ export const Tab = React.forwardRef((props: Props, ref) => {
       id={`react-tabtab-tab-${index}`}
       aria-controls={`react-tabtab-panel-${index}`}
       aria-selected={active}
+      onClick={clickTab}
     >
-      <TabText onClick={clickTab} ref={ref}>
-        {props.children}
-      </TabText>
+      <TabText ref={ref}>{props.children}</TabText>
       {props.closeElement && props.closeElement}
     </TabComponent>
   );
